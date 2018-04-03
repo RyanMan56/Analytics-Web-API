@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Analytics.Entities;
 using Microsoft.EntityFrameworkCore;
 using Analytics.Services;
+using AspNet.Security.OAuth.Validation;
 
 namespace Analytics
 {
@@ -27,15 +28,40 @@ namespace Analytics
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().AddMvcOptions(o => o.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter())); // Adds XML as an output format as well as JSON (which is included by default)
+            services.AddMvc().AddMvcOptions(o => o.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter())) // Adds XML as an output format as well as JSON (which is included by default)
+                .AddJsonOptions(o => o.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
 
             var connectionString = Configuration["ConnectionStrings:analyticsDbConnectionString"];
-            services.AddDbContext<AnalyticsContext>(o => o.UseSqlServer(
-                connectionString));
-            
+            services.AddDbContext<AnalyticsContext>(o => 
+            {
+                o.UseSqlServer(connectionString);
+                o.UseOpenIddict();
+            });
+
+            services.AddOpenIddict(o =>
+            {
+                // Register Entity Framework stores
+                o.AddEntityFrameworkCoreStores<AnalyticsContext>();
+                o.AddMvcBinders();
+                o.EnableTokenEndpoint("/api/users/login");
+                // Password flow is: User --Password--> Client --Password--> Auth Server --Access Token--> Client
+                o.AllowPasswordFlow();
+                o.DisableHttpsRequirement();
+            });
+
+            services.AddAuthentication(o =>
+            {
+                // Bearer authentication scheme
+                o.DefaultScheme = OAuthValidationDefaults.AuthenticationScheme;
+            })
+            .AddOAuthValidation();
 
             services.AddScoped<IAnalyticsRepository, AnalyticsRepository>(); // Scoped is created once per request
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IProjectRepository, ProjectRepository>();
+            services.AddScoped<IEventRepository, EventRepository>();
+            services.AddScoped<IProjectUserRepository, ProjectUserRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,11 +77,18 @@ namespace Analytics
 
             AutoMapper.Mapper.Initialize(cfg =>
             {
-                cfg.CreateMap<Entities.User, Models.User.UserDto>(); // Convention based; will map property names on the source object to the same names on the destination object.
+                cfg.CreateMap<Entities.User, Models.UserDto>(); // Convention based; will map property names on the source object to the same names on the destination object.
                                                                 // If property doesn't exist, it will be ignored.
-                cfg.CreateMap<Entities.User, Models.User.UserForCreationDto>();
+                cfg.CreateMap<Entities.User, Models.UserForCreationDto>();
+                //cfg.CreateMap<Entities.User, Models.User.UserResetPasswordDto>();
+                cfg.CreateMap<Entities.Project, Models.ProjectForCreationDto>();
+                cfg.CreateMap<Entities.Analyser, Models.AnalyserDto>();
+                cfg.CreateMap<Entities.Project, Models.ProjectDetailsDto>();
+                cfg.CreateMap<Entities.Event, Models.EventForCreationDto>();
+                cfg.CreateMap<Entities.Property, Models.PropertyDto>();
             });
 
+            app.UseAuthentication();
             app.UseMvc();
         }
     }

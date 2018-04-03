@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 
 namespace Analytics.Models
 {
-    public class UserDto
+    public class PropertyDto
     {
-        public int Id { get; set; }
-        public string Username { get; set; }
         public string Name { get; set; }
-        public string Password { get; set; }
+        public string Value { get; set; }
+        public string DataType { get; set; }
     }
 }

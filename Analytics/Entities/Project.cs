@@ -7,26 +7,28 @@ using System.Threading.Tasks;
 
 namespace Analytics.Entities
 {
-    public class User
+    public class Project
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [Required]
-        [EmailAddress]
-        public string Username { get; set; }
-        [Required]
-        [MaxLength(200)]
         public string Name { get; set; }
         [Required]
         public string Password { get; set; }
         [Required]
         public string PasswordSalt { get; set; }
         [Required]
-        public string SecurityQuestion { get; set; }
+        public IEnumerable<Analyser> Analysers { get; set; } = new List<Analyser>();
         [Required]
-        public string SecurityAnswer { get; set; }
+        public string Url { get; set; }
         [Required]
-        public string SecurityAnswerSalt { get; set; }
+        public string ApiKey { get; set; }
+        public IQueryable<Metric> TrackedMetrics { get; set; }
+        public List<ProjectUser> ProjectUsers { get; set; }
+        public List<Event> Events { get; set; }
+        //public IQueryable<Graph> Graphs { get; set; }
+        //public IQueryable<DataGroup> DataGroups { get; set; }
+
     }
 }

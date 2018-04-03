@@ -8,10 +8,14 @@ namespace Analytics.Services
 {
     public interface IUserRepository
     {
-        bool Create(string email, string name, string password);
+        bool Create(string email, string name, string password, string securityQuestion, string securityAnswer);
         User ValidatePassword(string email, string password);
+        User ValidateSecurityAnswer(string email, string securityAnswer);
         bool UserExists(string email);
-        User GetUserByEmail(string email);
+        User GetUser(string email);
+        User GetUser(int id);
+        bool ResetPassword(string email, string securityAnswer, string newPassword);
+        bool Delete(int id);
         bool Save();
     }
 }

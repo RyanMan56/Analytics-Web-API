@@ -7,26 +7,22 @@ using System.Threading.Tasks;
 
 namespace Analytics.Entities
 {
-    public class User
+    public class Analyser
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [Required]
-        [EmailAddress]
         public string Username { get; set; }
         [Required]
-        [MaxLength(200)]
         public string Name { get; set; }
-        [Required]
-        public string Password { get; set; }
-        [Required]
-        public string PasswordSalt { get; set; }
-        [Required]
-        public string SecurityQuestion { get; set; }
-        [Required]
-        public string SecurityAnswer { get; set; }
-        [Required]
-        public string SecurityAnswerSalt { get; set; }
+
+        [ForeignKey("UserId")]
+        public User User { get; set; }
+        public int UserId { get; set; }
+
+        [ForeignKey("ProjectId")]
+        public Project Project { get; set; }
+        public int ProjectId { get; set; }
     }
 }

@@ -11,9 +11,10 @@ using System;
 namespace Analytics.Migrations
 {
     [DbContext(typeof(AnalyticsContext))]
-    partial class AnalyticsContextModelSnapshot : ModelSnapshot
+    [Migration("20180403045137_Remake2")]
+    partial class Remake2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
