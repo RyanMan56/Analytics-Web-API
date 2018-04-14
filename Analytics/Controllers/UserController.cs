@@ -1,5 +1,6 @@
 ﻿using Analytics.Models;
 using Analytics.Services;
+using Analytics.Utils;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
@@ -58,7 +59,7 @@ namespace Analytics.Controllers
             {
                 return AnalyserLogin(request);
             }
-            return StartSession(request);
+            return ProjectUserLogin(request);
         }
 
         public IActionResult AnalyserLogin(OpenIdConnectRequest request)
@@ -94,7 +95,7 @@ namespace Analytics.Controllers
             return SignIn(principal, OpenIdConnectServerDefaults.AuthenticationScheme);
         }
 
-        public IActionResult StartSession(OpenIdConnectRequest request)
+        public IActionResult ProjectUserLogin(OpenIdConnectRequest request)
         {
             var apiKey = request.Username;
             var password = request.Password;
@@ -122,8 +123,39 @@ namespace Analytics.Controllers
             {
                 return StatusCode(500, Messages.ErrorMessages.save);
             }
-            return Ok("Session started.");
+            var session = projectRepository.CreateSession(project.Id, projectUser.Id);
+            if (session == null)
+            {
+                return StatusCode(500, Messages.ErrorMessages.generic);
+            }
+            if (!projectUserRepository.Save())
+            {
+                return StatusCode(500, Messages.ErrorMessages.save);
+            }            
+
+            var identity = new ClaimsIdentity(
+                OpenIdConnectServerDefaults.AuthenticationScheme,
+                OpenIdConnectConstants.Claims.Name,
+                OpenIdConnectConstants.Claims.Role);
+
+            identity.AddClaim(OpenIdConnectConstants.Claims.Subject,
+                "" + projectUser.Id,
+                OpenIdConnectConstants.Destinations.AccessToken);
+
+            identity.AddClaim(OpenIdConnectConstants.Claims.Name,
+                projectUser.Username,
+                OpenIdConnectConstants.Destinations.AccessToken);
+
+            identity.AddClaim(OpenIdConnectConstants.Claims.Role,
+                Roles.ProjectUser,
+                OpenIdConnectConstants.Destinations.AccessToken);
+
+            var principal = new ClaimsPrincipal(identity);
+
             // Create new session
+            // New token generated and OAuth2 token response returned
+            return SignIn(principal, OpenIdConnectServerDefaults.AuthenticationScheme);
+
         }
 
         [Authorize, HttpDelete]
@@ -156,6 +188,6 @@ namespace Analytics.Controllers
                 return StatusCode(500, "A problem happened while saving your request.");
             }
             return Ok("Password reset.");
-        }
+        }        
     }
 }

@@ -26,7 +26,7 @@ namespace Analytics.Entities
         public string ApiKey { get; set; }
         public IQueryable<Metric> TrackedMetrics { get; set; }
         public List<ProjectUser> ProjectUsers { get; set; }
-        public List<Event> Events { get; set; }
+        public List<Session> Sessions { get; set; }
         //public IQueryable<Graph> Graphs { get; set; }
         //public IQueryable<DataGroup> DataGroups { get; set; }
 

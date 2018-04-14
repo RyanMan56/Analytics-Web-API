@@ -8,11 +8,13 @@ namespace Analytics.Services
 {
     public interface IProjectRepository
     {
-        bool Create(string name, string password, List<int> analysers, string url);
+        Project Create(string name, string password, List<int> analysers, string url);
+        Session CreateSession(int projectId, int projectUserId);
         Project GetProject(int id, bool withAnalysers);
         Project GetProjectByApiKey(string apiKey, bool withAnalysers = false);
         List<Analyser> GetAnalysersForProject(int id);
-        bool IsUserAnalyserOfProject(int uid, Project project);
+        bool IsAnalyserOfProject(int uid, Project project);
+        bool IsProjectUserOfProject(int uid, Project project);
         bool ValidateProjectPassword(string password, Project project);
         bool Save();
     }

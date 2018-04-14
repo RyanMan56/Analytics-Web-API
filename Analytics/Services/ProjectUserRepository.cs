@@ -7,10 +7,13 @@ using Analytics.Entities;
 namespace Analytics.Services
 {
     public class ProjectUserRepository : BaseRepository, IProjectUserRepository
-    {        
-        public ProjectUserRepository(AnalyticsContext context)
+    {
+        private ISessionRepository sessionRepository;
+
+        public ProjectUserRepository(AnalyticsContext context, ISessionRepository sessionRepository)
         {
             this.context = context;
+            this.sessionRepository = sessionRepository;
         }
 
         public ProjectUser CreateProjectUser(string username, Project project)
@@ -42,6 +45,16 @@ namespace Analytics.Services
         public List<ProjectUser> GetProjectUsers(int pid)
         {
             return context.ProjectUsers.Where(pu => pu.ProjectId == pid).ToList();
+        }
+
+        public void UpdateLastActive(int id, DateTime? date = null)
+        {
+            var lastActive = date;
+            if (lastActive == null)
+            {
+                lastActive = DateTime.Now;
+            }
+            context.ProjectUsers.Where(pu => pu.Id == id).SingleOrDefault().LastActive = lastActive.Value;
         }
     }
 }

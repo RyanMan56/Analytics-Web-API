@@ -49,18 +49,16 @@ namespace Analytics.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<DateTime>("Date");
+
                     b.Property<string>("Name")
                         .IsRequired();
 
-                    b.Property<int>("ProjectId");
-
-                    b.Property<int>("ProjectUserId");
+                    b.Property<int>("SessionId");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("ProjectUserId");
+                    b.HasIndex("SessionId");
 
                     b.ToTable("Events");
                 });
@@ -137,7 +135,7 @@ namespace Analytics.Migrations
 
                     b.Property<DateTime>("LastActive");
 
-                    b.Property<int?>("ProjectId");
+                    b.Property<int>("ProjectId");
 
                     b.Property<string>("Username");
 
@@ -166,6 +164,22 @@ namespace Analytics.Migrations
                     b.HasIndex("EventId");
 
                     b.ToTable("Properties");
+                });
+
+            modelBuilder.Entity("Analytics.Entities.Session", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("ProjectId");
+
+                    b.Property<int>("ProjectUserId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Sessions");
                 });
 
             modelBuilder.Entity("Analytics.Entities.User", b =>
@@ -351,14 +365,9 @@ namespace Analytics.Migrations
 
             modelBuilder.Entity("Analytics.Entities.Event", b =>
                 {
-                    b.HasOne("Analytics.Entities.Project", "Project")
+                    b.HasOne("Analytics.Entities.Session", "Session")
                         .WithMany("Events")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Analytics.Entities.ProjectUser", "ProjectUser")
-                        .WithMany()
-                        .HasForeignKey("ProjectUserId")
+                        .HasForeignKey("SessionId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
@@ -385,7 +394,8 @@ namespace Analytics.Migrations
                 {
                     b.HasOne("Analytics.Entities.Project", "Project")
                         .WithMany("ProjectUsers")
-                        .HasForeignKey("ProjectId");
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Analytics.Entities.Property", b =>
@@ -393,6 +403,14 @@ namespace Analytics.Migrations
                     b.HasOne("Analytics.Entities.Event", "Event")
                         .WithMany("Properties")
                         .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Analytics.Entities.Session", b =>
+                {
+                    b.HasOne("Analytics.Entities.Project", "Project")
+                        .WithMany("Sessions")
+                        .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

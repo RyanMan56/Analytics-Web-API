@@ -13,17 +13,15 @@ namespace Analytics.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [ForeignKey("ProjectId")]
+        [ForeignKey("SessionId")]
         [InverseProperty("Events")]
-        public Project Project { get; set; }
-        public int ProjectId { get; set; }
-
-        [ForeignKey("ProjectUserId")]
-        public ProjectUser ProjectUser { get; set; }
-        public int ProjectUserId { get; set; }
+        public Session Session { get; set; }
+        public int SessionId { get; set; }
 
         [Required]
         public string Name { get; set; }
+        [Required]
+        public DateTime Date { get; set; }
         public List<Property> Properties { get; set; }
     }
 }

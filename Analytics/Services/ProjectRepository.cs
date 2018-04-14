@@ -15,20 +15,20 @@ namespace Analytics.Services
             this.context = context;
             this.projectUserRepository = projectUserRepository;
             cryptoService = new PBKDF2();
-        }        
+        }
 
         // analyserIds is Analysers' uids
-        public bool Create(string name, string password, List<int> analyserIds, string url)
+        public Project Create(string name, string password, List<int> analyserIds, string url)
         {
             // Get list of users
             var users = (from first in analyserIds
-                            join second in context.Users
-                            on first equals second.Id
-                            select second).ToList();            
+                         join second in context.Users
+                         on first equals second.Id
+                         select second).ToList();
 
             if (users.Count < 1)
             {
-                return false;
+                return null;
             }
 
             List<Analyser> analysers = new List<Analyser>();
@@ -40,8 +40,8 @@ namespace Analytics.Services
                     Username = user.Username,
                     Name = name,
                     UserId = user.Id
-                };               
-                analysers.Add(analyser);                
+                };
+                analysers.Add(analyser);
             }
             context.Analysers.AddRange(analysers);
 
@@ -53,10 +53,22 @@ namespace Analytics.Services
                 Analysers = analysers,
                 Url = url,
                 ApiKey = KeyGen.Generate()
-            };            
+            };
 
             context.Projects.Add(project);
-            return true;
+            return project;
+        }
+
+        public Session CreateSession(int projectId, int projectUserId)
+        {
+            var session = new Session
+            {
+                ProjectId = projectId,
+                ProjectUserId = projectUserId
+            };
+
+            context.Sessions.Add(session);
+            return session;
         }
 
         public Project GetProject(int id, bool withAnalysers)
@@ -80,6 +92,10 @@ namespace Analytics.Services
         public Project GetProjectByApiKey(string apiKey, bool withAnalysers = false)
         {
             var project = context.Projects.Where(p => p.ApiKey == apiKey).SingleOrDefault();
+            if (project == null)
+            {
+                return null;
+            }
             if (withAnalysers)
             {
                 project.Analysers = GetAnalysersForProject(project.Id);
@@ -103,9 +119,14 @@ namespace Analytics.Services
             return context.Analysers.Where(a => a.ProjectId == id).ToList();
         }
 
-        public bool IsUserAnalyserOfProject(int uid, Project project)
+        public bool IsAnalyserOfProject(int uid, Project project)
         {
             return project.Analysers.Where(a => a.UserId == uid).Any();
+        }
+
+        public bool IsProjectUserOfProject(int uid, Project project)
+        {
+            return project.ProjectUsers.Where(u => u.Id == uid).Any();
         }
     }
 }

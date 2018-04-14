@@ -12,6 +12,7 @@ namespace Analytics.Services
         ProjectUser GetProjectUser(string username, Project project);
         ProjectUser GetProjectUser(int id);
         List<ProjectUser> GetProjectUsers(int pid);
+        void UpdateLastActive(int id, DateTime? date = null);
         bool Save();
     }
 }

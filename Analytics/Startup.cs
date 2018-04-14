@@ -62,6 +62,8 @@ namespace Analytics
             services.AddScoped<IProjectRepository, ProjectRepository>();
             services.AddScoped<IEventRepository, EventRepository>();
             services.AddScoped<IProjectUserRepository, ProjectUserRepository>();
+            services.AddScoped<ISessionRepository, SessionRepository>();
+            services.AddScoped<IPropertyRepository, PropertyRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
