@@ -9,15 +9,13 @@ namespace Analytics.Services
     public class EventRepository : BaseRepository, IEventRepository
     {
         private IProjectRepository projectRepository;
-        private ISessionRepository sessionRepository;
         private IProjectUserRepository projectUserRepository;
         private IPropertyRepository propertyRepository;
 
-        public EventRepository(AnalyticsContext context, IProjectRepository projectRepository, ISessionRepository sessionRepository, IProjectUserRepository projectUserRepository, IPropertyRepository propertyRepository)
+        public EventRepository(AnalyticsContext context, IProjectRepository projectRepository, IProjectUserRepository projectUserRepository, IPropertyRepository propertyRepository)
         {
             this.context = context;
             this.projectRepository = projectRepository;
-            this.sessionRepository = sessionRepository;
             this.projectUserRepository = projectUserRepository;
             this.propertyRepository = propertyRepository;
         }
@@ -70,6 +68,7 @@ namespace Analytics.Services
                         {
                             propertiesDto.Add(new PropertyDto
                             {
+                                Id = p.Id,
                                 Name = p.Name,
                                 DataType = p.DataType,
                                 Value = p.Value
@@ -79,6 +78,7 @@ namespace Analytics.Services
 
                     finalEvents.Add(new EventDto()
                     {
+                        Id = e.Id,
                         Name = e.Name,
                         CreatedBy = projectUserRepository.GetProjectUser(session.ProjectUserId).Username,
                         Date = e.Date,

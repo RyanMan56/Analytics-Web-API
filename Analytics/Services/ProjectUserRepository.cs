@@ -8,12 +8,10 @@ namespace Analytics.Services
 {
     public class ProjectUserRepository : BaseRepository, IProjectUserRepository
     {
-        private ISessionRepository sessionRepository;
 
-        public ProjectUserRepository(AnalyticsContext context, ISessionRepository sessionRepository)
+        public ProjectUserRepository(AnalyticsContext context)
         {
             this.context = context;
-            this.sessionRepository = sessionRepository;
         }
 
         public ProjectUser CreateProjectUser(string username, Project project)
@@ -29,7 +27,7 @@ namespace Analytics.Services
         }
 
         public ProjectUser GetProjectUser(string username, Project project)
-        {          
+        {
             if (project.ProjectUsers == null)
             {
                 return null;
@@ -55,6 +53,23 @@ namespace Analytics.Services
                 lastActive = DateTime.Now;
             }
             context.ProjectUsers.Where(pu => pu.Id == id).SingleOrDefault().LastActive = lastActive.Value;
+        }
+
+        public double GetUsage(int projectUserId, DateTime fromDate, ISessionRepository sessionRepository, IEventRepository eventRepository)
+        {
+            var projectUser = GetProjectUser(projectUserId);
+
+            var sessions = sessionRepository.GetSessionsForProject(projectUser.ProjectId, projectUserId);
+            double totalUsage = 0;
+            foreach (var session in sessions)
+            {
+                List<Event> events = eventRepository.GetEventsFor(session).Where(e => e.Date > fromDate).OrderBy(e => e.Date).ToList();
+                if (events.Count > 0)
+                {
+                    totalUsage += (events[events.Count - 1].Date - events[0].Date).TotalSeconds;
+                }
+            }
+            return totalUsage;
         }
     }
 }

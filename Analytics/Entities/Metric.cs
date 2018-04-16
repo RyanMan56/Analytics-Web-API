@@ -15,5 +15,11 @@ namespace Analytics.Entities
         [Required]
         public string Name { get; set; }
         public List<MetricPart> MetricsParts { get; set; }
+        [Required]
+        public string MetricType { get; set; }
+        [Required]
+        [ForeignKey("ProjectId")]
+        public Project Project { get; set; }
+        public int ProjectId { get; set; }
     }
 }

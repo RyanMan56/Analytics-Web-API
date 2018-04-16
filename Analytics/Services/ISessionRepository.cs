@@ -9,7 +9,8 @@ namespace Analytics.Services
     public interface ISessionRepository
     {
         List<Session> GetSessionsForProject(int projectId);
-        DateTime GetTotalUsage(int projectId, DateTime fromDate);
+        List<Session> GetSessionsForProject(int projectId, int projectUserId);
+        double GetTotalUsage(int projectId, DateTime fromDate);
         Session GetSession(int id);
     }
 }

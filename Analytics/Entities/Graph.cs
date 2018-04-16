@@ -7,20 +7,21 @@ using System.Threading.Tasks;
 
 namespace Analytics.Entities
 {
-    public class Analyser
+    public class Graph
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         [Required]
-        public string Username { get; set; }
-        [Required]
-        public string Name { get; set; }
+        public string Title { get; set; }
 
-        [ForeignKey("UserId")]
-        public User User { get; set; }
-        public int UserId { get; set; }
+        [ForeignKey("ProjectId")]
+        [InverseProperty("Graphs")]
+        public Project Project { get; set; }
+        public int? ProjectId { get; set; }
 
-        public List<ProjectAnalyser> ProjectAnalysers { get; set; }
+        [ForeignKey("MetricId")]
+        public Metric Metric { get; set; }
+        public int? MetricId { get; set; }
     }
 }

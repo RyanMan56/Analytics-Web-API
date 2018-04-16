@@ -28,16 +28,12 @@ namespace Analytics.Migrations
                     b.Property<string>("Name")
                         .IsRequired();
 
-                    b.Property<int>("ProjectId");
-
                     b.Property<int>("UserId");
 
                     b.Property<string>("Username")
                         .IsRequired();
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
 
                     b.HasIndex("UserId");
 
@@ -63,21 +59,45 @@ namespace Analytics.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("Analytics.Entities.Graph", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int?>("MetricId");
+
+                    b.Property<int?>("ProjectId");
+
+                    b.Property<string>("Title")
+                        .IsRequired();
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MetricId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("Graphs");
+                });
+
             modelBuilder.Entity("Analytics.Entities.Metric", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<string>("MetricType")
+                        .IsRequired();
+
                     b.Property<string>("Name")
                         .IsRequired();
 
-                    b.Property<int?>("ProjectId");
+                    b.Property<int>("ProjectId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Metric");
+                    b.ToTable("Metrics");
                 });
 
             modelBuilder.Entity("Analytics.Entities.MetricPart", b =>
@@ -90,17 +110,13 @@ namespace Analytics.Migrations
 
                     b.Property<string>("EventProperty");
 
-                    b.Property<int?>("MetricId");
-
-                    b.Property<int>("ProjectId");
+                    b.Property<int>("MetricId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MetricId");
 
-                    b.HasIndex("ProjectId");
-
-                    b.ToTable("MetricPart");
+                    b.ToTable("MetricParts");
                 });
 
             modelBuilder.Entity("Analytics.Entities.Project", b =>
@@ -126,6 +142,19 @@ namespace Analytics.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Projects");
+                });
+
+            modelBuilder.Entity("Analytics.Entities.ProjectAnalyser", b =>
+                {
+                    b.Property<int>("ProjectId");
+
+                    b.Property<int>("AnalyserId");
+
+                    b.HasKey("ProjectId", "AnalyserId");
+
+                    b.HasAlternateKey("AnalyserId", "ProjectId");
+
+                    b.ToTable("ProjectAnalyser");
                 });
 
             modelBuilder.Entity("Analytics.Entities.ProjectUser", b =>
@@ -352,11 +381,6 @@ namespace Analytics.Migrations
 
             modelBuilder.Entity("Analytics.Entities.Analyser", b =>
                 {
-                    b.HasOne("Analytics.Entities.Project", "Project")
-                        .WithMany("Analysers")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("Analytics.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -371,21 +395,42 @@ namespace Analytics.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("Analytics.Entities.Graph", b =>
+                {
+                    b.HasOne("Analytics.Entities.Metric", "Metric")
+                        .WithMany()
+                        .HasForeignKey("MetricId");
+
+                    b.HasOne("Analytics.Entities.Project", "Project")
+                        .WithMany("Graphs")
+                        .HasForeignKey("ProjectId");
+                });
+
             modelBuilder.Entity("Analytics.Entities.Metric", b =>
                 {
-                    b.HasOne("Analytics.Entities.Project")
-                        .WithMany("TrackedMetrics")
-                        .HasForeignKey("ProjectId");
+                    b.HasOne("Analytics.Entities.Project", "Project")
+                        .WithMany("Metrics")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Analytics.Entities.MetricPart", b =>
                 {
-                    b.HasOne("Analytics.Entities.Metric")
+                    b.HasOne("Analytics.Entities.Metric", "Metric")
                         .WithMany("MetricsParts")
-                        .HasForeignKey("MetricId");
+                        .HasForeignKey("MetricId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Analytics.Entities.ProjectAnalyser", b =>
+                {
+                    b.HasOne("Analytics.Entities.Analyser", "Analyser")
+                        .WithMany("ProjectAnalysers")
+                        .HasForeignKey("AnalyserId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Analytics.Entities.Project", "Project")
-                        .WithMany()
+                        .WithMany("ProjectAnalysers")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });

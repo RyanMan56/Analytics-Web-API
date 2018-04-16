@@ -10,7 +10,8 @@ namespace Analytics.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public IEnumerable<AnalyserDto> Analysers { get; set; } = new List<AnalyserDto>();
+        public List<AnalyserDto> Analysers { get; set; }
+        public List<ProjectUserDto> ProjectUsers { get; set; }
         public string Url { get; set; }
         public string ApiKey { get; set; }
     }

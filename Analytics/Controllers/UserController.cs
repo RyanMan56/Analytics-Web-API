@@ -89,6 +89,10 @@ namespace Analytics.Controllers
                 user.Name,
                 OpenIdConnectConstants.Destinations.AccessToken);
 
+            identity.AddClaim(OpenIdConnectConstants.Claims.Role,
+                Roles.Analyser,
+                OpenIdConnectConstants.Destinations.AccessToken);
+
             var principal = new ClaimsPrincipal(identity);
 
             // New token generated and OAuth2 token response returned
@@ -131,7 +135,7 @@ namespace Analytics.Controllers
             if (!projectUserRepository.Save())
             {
                 return StatusCode(500, Messages.ErrorMessages.save);
-            }            
+            }
 
             var identity = new ClaimsIdentity(
                 OpenIdConnectServerDefaults.AuthenticationScheme,
@@ -148,6 +152,10 @@ namespace Analytics.Controllers
 
             identity.AddClaim(OpenIdConnectConstants.Claims.Role,
                 Roles.ProjectUser,
+                OpenIdConnectConstants.Destinations.AccessToken);
+
+            identity.AddClaim(OpenIdConnectConstants.Claims.Issuer,
+                ""+session.Id,
                 OpenIdConnectConstants.Destinations.AccessToken);
 
             var principal = new ClaimsPrincipal(identity);

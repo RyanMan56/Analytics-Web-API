@@ -21,19 +21,32 @@ namespace Analytics.Services
             return context.Sessions.Where(s => s.ProjectId == projectId).ToList();
         }
 
+        public List<Session> GetSessionsForProject(int projectId, int projectUserId)
+        {
+            return context.Sessions.Where(s => s.ProjectId == projectId && s.ProjectUserId == projectUserId).ToList();
+        }
+
         public Session GetSession(int id)
         {
             return context.Sessions.Where(s => s.Id == id).SingleOrDefault();
         }
 
-        public DateTime GetTotalUsage(int projectId, DateTime fromDate)
+        public List<Session> GetSessionForProjectUser(int projectUserId)
+        {
+            return context.Sessions.Where(s => s.ProjectUserId == projectUserId).ToList();
+        }
+
+        public double GetTotalUsage(int projectId, DateTime fromDate)
         {
             var sessions = GetSessionsForProject(projectId);
-            DateTime totalUsage = new DateTime(0);
+            double totalUsage = 0;
             foreach (var session in sessions)
             {
                 List<Event> events = eventRepository.GetEventsFor(session).Where(e => e.Date > fromDate).OrderBy(e => e.Date).ToList();
-                totalUsage += events[events.Count - 1].Date - events[0].Date;
+                if (events.Count > 0)
+                {
+                    totalUsage += (events[events.Count - 1].Date - events[0].Date).TotalSeconds;
+                }
             }
 
             return totalUsage;

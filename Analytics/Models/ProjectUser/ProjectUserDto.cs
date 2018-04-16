@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 
 namespace Analytics.Models
 {
-    public class AnalyserDto
+    public class ProjectUserDto
     {
+        public int Id { get; set; }
         public string Username { get; set; }
-        public string Name { get; set; }
+        public DateTime LastActive { get; set; }
+        public double Usage { get; set; }
     }
 }

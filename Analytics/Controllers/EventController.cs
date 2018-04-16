@@ -38,12 +38,14 @@ namespace Analytics.Controllers
                 return BadRequest(ModelState);
             }
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
-            var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
 
             if (userRole != Roles.ProjectUser)
             {
                 return StatusCode(403, "User does not belong to a project.");
             }
+
+            var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
+            var sessionId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Issuer));            
 
             var project = projectRepository.GetProject(id, true);
             if (project == null)
@@ -55,12 +57,51 @@ namespace Analytics.Controllers
                 return Unauthorized();
             }
 
-            var finalEvent = eventRepository.AddEvent(e, userId, id);
+            var finalEvent = eventRepository.AddEvent(e, userId, sessionId);
             if (finalEvent == null)
             {
                 return StatusCode(500, Messages.ErrorMessages.generic);
             }
             projectUserRepository.UpdateLastActive(userId);            
+            if (!eventRepository.Save())
+            {
+                return StatusCode(500, Messages.ErrorMessages.save);
+            }
+            return Ok(finalEvent);
+        }
+
+        [Authorize, HttpPost("{apiKey}")]
+        public IActionResult CreateEvent([FromBody] EventForCreationDto e, string apiKey)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
+            var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
+            var sessionId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Issuer));
+
+            if (userRole != Roles.ProjectUser)
+            {
+                return StatusCode(403, "User does not belong to a project.");
+            }
+
+            var project = projectRepository.GetProjectByApiKey(apiKey);
+            if (project == null)
+            {
+                return StatusCode(500, Messages.ErrorMessages.projectNotFound);
+            }
+            if (!projectRepository.IsProjectUserOfProject(userId, project))
+            {
+                return Unauthorized();
+            }
+
+            var finalEvent = eventRepository.AddEvent(e, userId, sessionId);
+            if (finalEvent == null)
+            {
+                return StatusCode(500, Messages.ErrorMessages.generic);
+            }
+            projectUserRepository.UpdateLastActive(userId);
             if (!eventRepository.Save())
             {
                 return StatusCode(500, Messages.ErrorMessages.save);
@@ -78,9 +119,9 @@ namespace Analytics.Controllers
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
             var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
 
-            if (userRole != Roles.ProjectUser)
+            if (userRole != Roles.Analyser)
             {
-                return StatusCode(403, "User does not belong to a project.");
+                return StatusCode(403, Messages.ErrorMessages.userNotAnalyser);
             }
 
             var project = projectRepository.GetProject(id, true);
@@ -113,12 +154,16 @@ namespace Analytics.Controllers
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
             var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
 
-            if (userRole != Roles.ProjectUser)
+            if (userRole != Roles.Analyser)
             {
-                return StatusCode(403, "User does not belong to a project.");
+                return StatusCode(403, Messages.ErrorMessages.userNotAnalyser);
             }
 
             var e = eventRepository.GetEvent(id);
+            if (e == null)
+            {
+                return StatusCode(500, Messages.ErrorMessages.eventNotFound);
+            }
             var session = sessionRepository.GetSession(e.SessionId);
             if (session.ProjectUserId != userId)
             {

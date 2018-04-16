@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Analytics.Migrations
 {
-    public partial class Remake : Migration
+    public partial class Graphs : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -108,23 +108,24 @@ namespace Analytics.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Metric",
+                name: "Metrics",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    MetricType = table.Column<string>(nullable: false),
                     Name = table.Column<string>(nullable: false),
-                    ProjectId = table.Column<int>(nullable: true)
+                    ProjectId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Metric", x => x.Id);
+                    table.PrimaryKey("PK_Metrics", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Metric_Projects_ProjectId",
+                        name: "FK_Metrics_Projects_ProjectId",
                         column: x => x.ProjectId,
                         principalTable: "Projects",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -175,19 +176,12 @@ namespace Analytics.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     Name = table.Column<string>(nullable: false),
-                    ProjectId = table.Column<int>(nullable: false),
                     UserId = table.Column<int>(nullable: false),
                     Username = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Analysers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Analysers_Projects_ProjectId",
-                        column: x => x.ProjectId,
-                        principalTable: "Projects",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Analysers_Users_UserId",
                         column: x => x.UserId,
@@ -231,29 +225,49 @@ namespace Analytics.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MetricPart",
+                name: "Graphs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    MetricId = table.Column<int>(nullable: true),
+                    ProjectId = table.Column<int>(nullable: true),
+                    Title = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Graphs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Graphs_Metrics_MetricId",
+                        column: x => x.MetricId,
+                        principalTable: "Metrics",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Graphs_Projects_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Projects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MetricParts",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     EventName = table.Column<string>(nullable: false),
                     EventProperty = table.Column<string>(nullable: true),
-                    MetricId = table.Column<int>(nullable: true),
-                    ProjectId = table.Column<int>(nullable: false)
+                    MetricId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MetricPart", x => x.Id);
+                    table.PrimaryKey("PK_MetricParts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_MetricPart_Metric_MetricId",
+                        name: "FK_MetricParts_Metrics_MetricId",
                         column: x => x.MetricId,
-                        principalTable: "Metric",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_MetricPart_Projects_ProjectId",
-                        column: x => x.ProjectId,
-                        principalTable: "Projects",
+                        principalTable: "Metrics",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -275,6 +289,31 @@ namespace Analytics.Migrations
                         name: "FK_Events_Sessions_SessionId",
                         column: x => x.SessionId,
                         principalTable: "Sessions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProjectAnalyser",
+                columns: table => new
+                {
+                    ProjectId = table.Column<int>(nullable: false),
+                    AnalyserId = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProjectAnalyser", x => new { x.ProjectId, x.AnalyserId });
+                    table.UniqueConstraint("AK_ProjectAnalyser_AnalyserId_ProjectId", x => new { x.AnalyserId, x.ProjectId });
+                    table.ForeignKey(
+                        name: "FK_ProjectAnalyser_Analysers_AnalyserId",
+                        column: x => x.AnalyserId,
+                        principalTable: "Analysers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProjectAnalyser_Projects_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Projects",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -302,11 +341,6 @@ namespace Analytics.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Analysers_ProjectId",
-                table: "Analysers",
-                column: "ProjectId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Analysers_UserId",
                 table: "Analysers",
                 column: "UserId");
@@ -317,18 +351,23 @@ namespace Analytics.Migrations
                 column: "SessionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Metric_ProjectId",
-                table: "Metric",
-                column: "ProjectId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MetricPart_MetricId",
-                table: "MetricPart",
+                name: "IX_Graphs_MetricId",
+                table: "Graphs",
                 column: "MetricId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MetricPart_ProjectId",
-                table: "MetricPart",
+                name: "IX_Graphs_ProjectId",
+                table: "Graphs",
+                column: "ProjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MetricParts_MetricId",
+                table: "MetricParts",
+                column: "MetricId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Metrics_ProjectId",
+                table: "Metrics",
                 column: "ProjectId");
 
             migrationBuilder.CreateIndex(
@@ -384,10 +423,10 @@ namespace Analytics.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Analysers");
+                name: "Graphs");
 
             migrationBuilder.DropTable(
-                name: "MetricPart");
+                name: "MetricParts");
 
             migrationBuilder.DropTable(
                 name: "OpenIddictScopes");
@@ -396,25 +435,31 @@ namespace Analytics.Migrations
                 name: "OpenIddictTokens");
 
             migrationBuilder.DropTable(
+                name: "ProjectAnalyser");
+
+            migrationBuilder.DropTable(
                 name: "ProjectUsers");
 
             migrationBuilder.DropTable(
                 name: "Properties");
 
             migrationBuilder.DropTable(
-                name: "Users");
-
-            migrationBuilder.DropTable(
-                name: "Metric");
+                name: "Metrics");
 
             migrationBuilder.DropTable(
                 name: "OpenIddictAuthorizations");
+
+            migrationBuilder.DropTable(
+                name: "Analysers");
 
             migrationBuilder.DropTable(
                 name: "Events");
 
             migrationBuilder.DropTable(
                 name: "OpenIddictApplications");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Sessions");

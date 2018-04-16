@@ -12,9 +12,9 @@ namespace Analytics.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        [ForeignKey("ProjectId")]
-        public Project Project { get; set; }
-        public int ProjectId { get; set; }
+        [ForeignKey("MetricId")]
+        public Metric Metric { get; set; }
+        public int MetricId { get; set; }
         [Required]
         public string EventName { get; set; }
         public string EventProperty { get; set; }

@@ -64,6 +64,8 @@ namespace Analytics
             services.AddScoped<IProjectUserRepository, ProjectUserRepository>();
             services.AddScoped<ISessionRepository, SessionRepository>();
             services.AddScoped<IPropertyRepository, PropertyRepository>();
+            services.AddScoped<IMetricRepository, MetricRepository>();
+            services.AddScoped<IGraphRepository, GraphRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -88,6 +90,10 @@ namespace Analytics
                 cfg.CreateMap<Entities.Project, Models.ProjectDetailsDto>();
                 cfg.CreateMap<Entities.Event, Models.EventForCreationDto>();
                 cfg.CreateMap<Entities.Property, Models.PropertyDto>();
+                cfg.CreateMap<Entities.Metric, MetricPartDto>();
+                cfg.CreateMap<Entities.MetricPart, MetricPartDto>();
+                cfg.CreateMap<Entities.ProjectUser, Models.ProjectUserDto>();
+                cfg.CreateMap<Entities.Graph, Models.Graph.GraphDto>();
             });
 
             app.UseAuthentication();

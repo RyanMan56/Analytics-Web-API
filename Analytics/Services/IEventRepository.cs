@@ -9,7 +9,7 @@ namespace Analytics.Services
 {
     public interface IEventRepository
     {
-        Event AddEvent(EventForCreationDto e, int puid, int pid);
+        Event AddEvent(EventForCreationDto e, int projectUserId, int sessionId);
         List<EventDto> GetEventsFor(List<Session> sessions, int limit, bool withProperties = false);
         List<Event> GetEventsFor(Session session, bool withProperties = false);
         Event GetEvent(int id);
