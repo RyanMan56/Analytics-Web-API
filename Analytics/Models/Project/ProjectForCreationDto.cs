@@ -13,7 +13,5 @@ namespace Analytics.Models
         public string Name { get; set; }
         [Required(ErrorMessage = "Please enter a valid password.")]
         public string Password { get; set; }
-        [Required(ErrorMessage = "Please specify at least one analyser.")]
-        public List<int> Analysers { get; set; }
     }
 }

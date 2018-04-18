@@ -47,6 +47,8 @@ namespace Analytics.Controllers
             }
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
             var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
+            var analysers = new List<int>() { userId };
+
 
             if (userRole != Roles.Analyser)
             {
@@ -54,7 +56,7 @@ namespace Analytics.Controllers
             }
             var url = $"{Request.Scheme}://{Request.Host }{Request.Path}";
             url = url.Remove(url.Length - 6);
-            var finalProject = projectRepository.Create(project.Name, userRepository.GetUser(userId).Name, project.Password, project.Analysers, url);
+            var finalProject = projectRepository.Create(project.Name, userRepository.GetUser(userId).Name, project.Password, analysers, url);
             if (finalProject == null)
             {
                 return StatusCode(500, Messages.ErrorMessages.generic);
@@ -68,8 +70,15 @@ namespace Analytics.Controllers
         }
 
         [Authorize, HttpGet]
-        public IActionResult GetProjects()
+        public IActionResult GetProjects(DateTime? fromDate)
         {
+            var finalFromDate = fromDate;
+            if (fromDate == null)
+            {
+                // Subtract a month from now, since we want to get usage over the past month by default
+                finalFromDate = DateTime.Now;
+            }
+
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
             var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
 
@@ -92,7 +101,8 @@ namespace Analytics.Controllers
                 {
                     analysers.Add(projectAnalyser.Analyser);
                 }
-                projectDtos.Add(new ProjectDetailsDto
+
+                var projectDto = new ProjectDetailsDto
                 {
                     Id = project.Id,
                     Name = project.Name,
@@ -100,7 +110,31 @@ namespace Analytics.Controllers
                     ApiKey = project.ApiKey,
                     Analysers = AutoMapper.Mapper.Map<List<AnalyserDto>>(analysers),
                     ProjectUsers = AutoMapper.Mapper.Map<List<ProjectUserDto>>(project.ProjectUsers)
-                });
+                };
+
+                var metrics = metricRepository.GetMetrics(project.Id, true);
+                if (metrics == null)
+                {
+                    projectDtos.Add(projectDto);
+                    continue;
+                }
+
+                var metricDtos = new List<MetricDto>();
+                foreach (var metric in metrics)
+                {
+                    var metricPartsDto = AutoMapper.Mapper.Map<List<MetricPartDto>>(metric.MetricsParts);
+                    metricDtos.Add(new MetricDto
+                    {
+                        Id = metric.Id,
+                        Name = metric.Name,
+                        MetricParts = metricPartsDto,
+                        MetricType = metric.MetricType,
+                        Value = metricRepository.CalculateMetricBeforeDate(metric, finalFromDate.Value)
+                    });
+                }
+
+                projectDto.Metrics = metricDtos;
+                projectDtos.Add(projectDto);
             }
 
             return Ok(projectDtos);
@@ -178,6 +212,87 @@ namespace Analytics.Controllers
                 return StatusCode(500, Messages.ErrorMessages.save);
             }
             return Ok(analyser);
+        }
+
+        [Authorize, HttpGet("{id}/analyser/")]
+        public IActionResult GetAnalysers(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
+            var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
+
+            if (userRole != Roles.Analyser)
+            {
+                return StatusCode(403, Messages.ErrorMessages.userNotAnalyser);
+            }
+
+            var project = projectRepository.GetProject(id, true);
+            if (project == null)
+            {
+                return StatusCode(500, Messages.ErrorMessages.projectNotFound);
+            }
+
+            var uid = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
+            bool userIsAnalyser = projectRepository.IsAnalyserOfProject(uid, project);
+            if (!userIsAnalyser)
+            {
+                return StatusCode(401, Messages.ErrorMessages.userNotAnalyser);
+            }
+
+            var analysers = projectRepository.GetAnalysersForProject(id);
+            if (analysers == null)
+            {
+                return StatusCode(500, Messages.ErrorMessages.generic);
+            }
+            if (!projectRepository.Save())
+            {
+                return StatusCode(500, Messages.ErrorMessages.save);
+            }
+            return Ok(analysers);
+        }
+
+        [Authorize, HttpDelete("{id}/analyser/{analyserId}")]
+        public IActionResult RemoveAnalyser(int id, int analyserId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
+            var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
+
+            if (userRole != Roles.Analyser)
+            {
+                return StatusCode(403, Messages.ErrorMessages.userNotAnalyser);
+            }
+
+            var project = projectRepository.GetProject(id, true);
+            if (project == null)
+            {
+                return StatusCode(500, Messages.ErrorMessages.projectNotFound);
+            }
+
+            var uid = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
+            bool userIsAnalyser = projectRepository.IsAnalyserOfProject(uid, project);
+            if (!userIsAnalyser)
+            {
+                return StatusCode(401, Messages.ErrorMessages.userNotAnalyser);
+            }
+
+            if (!projectRepository.RemoveAnalyserFromProject(id, analyserId))
+            {
+                return StatusCode(500, Messages.ErrorMessages.generic);
+            }
+            if (!projectRepository.Save())
+            {
+                return StatusCode(500, Messages.ErrorMessages.save);
+            }
+            return Ok("Analyser " + analyserId + " removed from project.");
         }
 
         [Authorize, HttpGet("{id}/users")]

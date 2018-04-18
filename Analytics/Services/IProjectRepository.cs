@@ -21,6 +21,7 @@ namespace Analytics.Services
         bool ValidateProjectPassword(string password, Project project);
         List<ProjectUser> GetProjectUsersOfProject(Project project);
         Metric AddMetric(int projectId, MetricDto metricDto);
+        bool RemoveAnalyserFromProject(int id, int analyserId);
         bool Save();
     }
 }

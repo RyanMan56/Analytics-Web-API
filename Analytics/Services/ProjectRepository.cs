@@ -211,6 +211,21 @@ namespace Analytics.Services
             return finalAnalyser;
         }
 
+        public bool RemoveAnalyserFromProject(int id, int analyserId)
+        {
+            var analyser = context.Analysers.Include(a => a.ProjectAnalysers)
+                .Where(a => a.Id == analyserId && a.ProjectAnalysers.Where(pa => pa.ProjectId == id).Any())
+                .SingleOrDefault();
+
+            if (analyser == null)
+            {
+                return false;
+            }
+            var projectAnalyser = analyser.ProjectAnalysers.Where(pa => pa.ProjectId == id).SingleOrDefault();
+            analyser.ProjectAnalysers.Remove(projectAnalyser);
+            return true;
+        }
+
         public List<Analyser> GetAnalysersForProject(int id)
         {
             //return context.ProjectAnalysers.Where(pa => pa.ProjectId == id).Select(pa => pa.Analyser).ToList();

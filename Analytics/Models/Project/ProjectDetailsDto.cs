@@ -14,5 +14,6 @@ namespace Analytics.Models
         public List<ProjectUserDto> ProjectUsers { get; set; }
         public string Url { get; set; }
         public string ApiKey { get; set; }
+        public List<MetricDto> Metrics { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Analytics.Entities;
 using Analytics.Models;
+using Analytics.Models.Property;
 using Analytics.Services;
 using Analytics.Utils;
 using AspNet.Security.OpenIdConnect.Extensions;
@@ -70,8 +71,8 @@ namespace Analytics.Controllers
             return Ok(finalEvent);
         }
 
-        [Authorize, HttpPost("{apiKey}")]
-        public IActionResult CreateEvent([FromBody] EventForCreationDto e, string apiKey)
+        [Authorize, HttpPost("event")]
+        public IActionResult CreateEvent([FromBody] EventForCreationDto e)
         {
             if (!ModelState.IsValid)
             {
@@ -85,6 +86,8 @@ namespace Analytics.Controllers
             {
                 return StatusCode(403, "User does not belong to a project.");
             }
+
+            var apiKey = e.ApiKey;
 
             var project = projectRepository.GetProjectByApiKey(apiKey);
             if (project == null)
@@ -129,7 +132,7 @@ namespace Analytics.Controllers
             {
                 return StatusCode(500, Messages.ErrorMessages.projectNotFound);
             }
-            if (!projectRepository.IsProjectUserOfProject(userId, project))
+            if (!projectRepository.IsAnalyserOfProject(userId, project))
             {
                 return Unauthorized();
             }
@@ -171,7 +174,7 @@ namespace Analytics.Controllers
             }
 
             var properties = propertyRepository.GetPropertiesForEvent(eventId);
-            return Ok(AutoMapper.Mapper.Map<List<PropertyDto>>(properties));
+            return Ok(AutoMapper.Mapper.Map<List<PropertyForDisplayDto>>(properties));
         }
     }    
 }

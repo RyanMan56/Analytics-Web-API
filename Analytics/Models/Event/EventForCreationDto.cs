@@ -11,6 +11,8 @@ namespace Analytics.Models
     {
         [Required]
         public string Name { get; set; }
+        [Required]
+        public string ApiKey { get; set; }
         public List<PropertyDto> Properties { get; set; }
     }
 }

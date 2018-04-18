@@ -13,6 +13,7 @@ using Analytics.Entities;
 using Microsoft.EntityFrameworkCore;
 using Analytics.Services;
 using AspNet.Security.OAuth.Validation;
+using Analytics.Models.Property;
 
 namespace Analytics
 {
@@ -27,10 +28,9 @@ namespace Analytics
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {
+        {            
             services.AddMvc().AddMvcOptions(o => o.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter())) // Adds XML as an output format as well as JSON (which is included by default)
                 .AddJsonOptions(o => o.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-
 
             var connectionString = Configuration["ConnectionStrings:analyticsDbConnectionString"];
             services.AddDbContext<AnalyticsContext>(o => 
@@ -70,7 +70,8 @@ namespace Analytics
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, AnalyticsContext analyticsContext)
-        {
+        {            
+
             loggerFactory.AddConsole().AddDebug();
             if (env.IsDevelopment())
             {
@@ -90,14 +91,22 @@ namespace Analytics
                 cfg.CreateMap<Entities.Project, Models.ProjectDetailsDto>();
                 cfg.CreateMap<Entities.Event, Models.EventForCreationDto>();
                 cfg.CreateMap<Entities.Property, Models.PropertyDto>();
+                cfg.CreateMap<Entities.Property, PropertyForDisplayDto>();
                 cfg.CreateMap<Entities.Metric, MetricPartDto>();
                 cfg.CreateMap<Entities.MetricPart, MetricPartDto>();
                 cfg.CreateMap<Entities.ProjectUser, Models.ProjectUserDto>();
                 cfg.CreateMap<Entities.Graph, Models.Graph.GraphDto>();
             });
 
+            app.UseCors(corsPolicyBuilder =>
+               corsPolicyBuilder
+              .AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials()
+            );
             app.UseAuthentication();
-            app.UseMvc();
+            app.UseMvc();            
         }
     }
 }
