@@ -91,6 +91,7 @@ namespace Analytics.Controllers
                 return StatusCode(500, Messages.ErrorMessages.projectNotFound);
             }
 
+            // Get ID and role from claims
             var uid = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
 
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);

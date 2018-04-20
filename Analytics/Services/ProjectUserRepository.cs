@@ -40,11 +40,6 @@ namespace Analytics.Services
             return context.ProjectUsers.Where(pu => pu.Id == id).SingleOrDefault();
         }
 
-        public List<ProjectUser> GetProjectUsers(int pid)
-        {
-            return context.ProjectUsers.Where(pu => pu.ProjectId == pid).ToList();
-        }
-
         public void UpdateLastActive(int id, DateTime? date = null)
         {
             var lastActive = date;
@@ -54,6 +49,11 @@ namespace Analytics.Services
             }
             context.ProjectUsers.Where(pu => pu.Id == id).SingleOrDefault().LastActive = lastActive.Value;
         }
+
+        public List<ProjectUser> GetProjectUsers(int pid)
+        {
+            return context.ProjectUsers.Where(pu => pu.ProjectId == pid).ToList();
+        }        
 
         public double GetUsage(int projectUserId, DateTime fromDate, ISessionRepository sessionRepository, IEventRepository eventRepository)
         {

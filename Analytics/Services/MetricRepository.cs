@@ -17,8 +17,11 @@ namespace Analytics.Services
 
         public Metric AddMetricPart(int id, int projectId, MetricPartDto metricPartDto)
         {
+            // Get metric
             var metric = context.Metrics.Where(m => m.Id == id && m.ProjectId == projectId).SingleOrDefault();
+            // Get metric parts
             metric.MetricsParts = context.MetricParts.Where(mp => mp.MetricId == metric.Id).ToList();
+            // Map metricPartDto to MetricPart model
             var metricPart = new MetricPart
             {
                 MetricId = metric.Id,
@@ -32,16 +35,7 @@ namespace Analytics.Services
         public bool MetricExists(int id, int projectId)
         {
             return context.Metrics.Where(m => m.Id == id && m.ProjectId == projectId).Any();
-        }
-
-        public List<Metric> GetMetrics(int projectId, bool withMetricParts)
-        {
-            if (!withMetricParts)
-            {
-                return context.Metrics.Where(m => m.ProjectId == projectId).ToList();
-            }
-            return context.Metrics.Include(m => m.MetricsParts).Where(m => m.ProjectId == projectId).ToList();
-        }
+        }        
 
         public Metric GetMetric(int id, int projectId, bool withParts)
         {
@@ -73,6 +67,15 @@ namespace Analytics.Services
                 return;
             }
             context.Metrics.Remove(metric);
+        }
+
+        public List<Metric> GetMetrics(int projectId, bool withMetricParts)
+        {
+            if (!withMetricParts)
+            {
+                return context.Metrics.Where(m => m.ProjectId == projectId).ToList();
+            }
+            return context.Metrics.Include(m => m.MetricsParts).Where(m => m.ProjectId == projectId).ToList();
         }
 
         public double CalculateMetricBeforeDate(Metric metric, DateTime dateLimit)

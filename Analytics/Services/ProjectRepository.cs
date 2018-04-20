@@ -37,6 +37,7 @@ namespace Analytics.Services
             var preExistingAnalysers = new List<Analyser>();
             foreach (var user in users)
             {
+                // Gets analysers matching a condition
                 var analyser = context.Analysers.Where(a => a.UserId == user.Id).SingleOrDefault();
                 if (analyser != null)
                 {
@@ -73,6 +74,7 @@ namespace Analytics.Services
                 ApiKey = KeyGen.Generate()
             };
 
+            // Changes are saved so a project ID can be known
             if (!Save())
             {
                 return null;
@@ -111,11 +113,13 @@ namespace Analytics.Services
 
         public List<Project> GetProjects(int userId, bool withAnalysers)
         {
+            // A list of projects that match the given query
             var projects = context.Projects.Where(p => p.ProjectAnalysers.Where(pa => pa.Analyser.UserId == userId).Any()).ToList();
             if (!withAnalysers)
             {
                 return projects;
             }
+            // Populate analyser data
             foreach (var project in projects)
             {
                 var projectAnalysers = GetProjectAnalysersForProject(project.Id);

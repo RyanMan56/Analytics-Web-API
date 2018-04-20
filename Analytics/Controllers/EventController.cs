@@ -38,6 +38,7 @@ namespace Analytics.Controllers
             {
                 return BadRequest(ModelState);
             }
+            // Get user's role from token
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
 
             if (userRole != Roles.ProjectUser)

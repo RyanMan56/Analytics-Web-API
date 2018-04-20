@@ -41,19 +41,23 @@ namespace Analytics.Controllers
         [Authorize, HttpPost("create")]
         public IActionResult CreateProject([FromBody] ProjectForCreationDto project)
         {
+            // Is request valid
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+
+            // Get claims from bearer token
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
             var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
             var analysers = new List<int>() { userId };
 
-
+            // Check if user is an analyser
             if (userRole != Roles.Analyser)
             {
                 return StatusCode(403, Messages.ErrorMessages.userNotAnalyser);
             }
+            // Creates the project URL to display to the user
             var url = $"{Request.Scheme}://{Request.Host }{Request.Path}";
             url = url.Remove(url.Length - 6);
             var finalProject = projectRepository.Create(project.Name, userRepository.GetUser(userId).Name, project.Password, analysers, url);
@@ -79,6 +83,7 @@ namespace Analytics.Controllers
                 finalFromDate = DateTime.Now;
             }
 
+            // Get user's claims from token
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
             var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
 
@@ -181,6 +186,7 @@ namespace Analytics.Controllers
                 return BadRequest(ModelState);
             }
 
+            // Get role and ID from token
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
             var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
 
@@ -414,6 +420,7 @@ namespace Analytics.Controllers
             {
                 return BadRequest(ModelState);
             }
+            // Get user claims from token
             var userRole = User.GetClaim(OpenIdConnectConstants.Claims.Role);
             var userId = int.Parse(User.GetClaim(OpenIdConnectConstants.Claims.Subject));
 
@@ -439,7 +446,8 @@ namespace Analytics.Controllers
             {
                 return StatusCode(500, Messages.ErrorMessages.generic);
             }
-
+             
+            // Convert models into DTOs
             var metricDtos = new List<MetricDto>();
             foreach (var metric in metrics)
             {
@@ -453,8 +461,6 @@ namespace Analytics.Controllers
                     Value = metricRepository.CalculateMetricBeforeDate(metric, finalFromDate)
                 });
             }
-
-
             return Ok(metricDtos);
         }
 

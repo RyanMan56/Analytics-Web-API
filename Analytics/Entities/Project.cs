@@ -27,7 +27,5 @@ namespace Analytics.Entities
         public List<ProjectUser> ProjectUsers { get; set; }
         public List<Session> Sessions { get; set; }
         public List<Graph> Graphs { get; set; }
-        //public IQueryable<DataGroup> DataGroups { get; set; }
-
     }
 }

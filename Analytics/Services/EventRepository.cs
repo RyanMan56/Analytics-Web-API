@@ -34,6 +34,7 @@ namespace Analytics.Services
                 return null;
             }
 
+            // Also store event properties
             List<Property> finalProperties = new List<Property>();
             foreach (var p in e.Properties)
             {
@@ -44,10 +45,7 @@ namespace Analytics.Services
                     Value = p.Value,
                     DataType = p.DataType
                 });
-            }
-            //AutoMapper.Mapper.Map<List<Property>>(e.Properties);
-            
-            //var finalEvent = AutoMapper.Mapper.Map<Event>(e);                        
+            }                   
             context.Properties.AddRange(finalProperties);
             return finalEvent;
         }
@@ -55,13 +53,16 @@ namespace Analytics.Services
         public List<EventDto> GetEventsFor(List<Session> sessions, int limit, bool withProperties = false)
         {
             var finalEvents = new List<EventDto>();
+            // Get sessions
             foreach (var session in sessions)
             {
+                // Get events from sessions and add to finalEvents
                 var events = context.Events.Where(e => e.SessionId == session.Id).ToList();
                 foreach (var e in events)
                 {
                     var properties = propertyRepository.GetPropertiesForEvent(e.Id);
                     var propertiesDto = new List<PropertyDto>();
+                    // Add properties if applicable
                     if (withProperties)
                     {
                         foreach (var p in properties)
